@@ -6,6 +6,7 @@ export const AdvancedCounter: React.FC = () => {
     const [count, setCount] = useState<number>(() => {
         console.log("Inilializer running...")
         const saved = localStorage.getItem('count');
+        //localStorage → browser storage object that keeps data even after refresh
         return saved ? Number(saved) : 0;
         // The initializer runs only once so React can preserve state across 
         // re-renders instead of resetting it every time the component function executes.
@@ -14,7 +15,8 @@ export const AdvancedCounter: React.FC = () => {
     const [step, setStep] = useState<number>(1);
     const [history, setHistory] = useState<number[]>([]);
 
-    // To track the history
+    // To track the history 
+    //Run this code after render, but only when something changes. prev is callback form, upends at the end of array”
 
     useEffect(() => {
         setHistory(prev => [...prev, count]);
@@ -31,10 +33,16 @@ export const AdvancedCounter: React.FC = () => {
                 localStorage.setItem('count', count.toString());
             }
         }, 100);
-
+// this logic is necessary coz, when the user might clicks the count slow or immeditaly 
+// so giving a buffer or 100ms and working with timer to continue or 
+// If the user clicks again before 100ms completes, the cleanup runs 
+// first and cancels the previous timer so the old setTimeout never 
+// saves outdated data. If 100ms finishes without another click, 
+// the timer executes and saves the current count to localStorage.
+// SAVE 1  (canceled), SAVE 2 (executed)
         return () => {
-            cancelled = true;
-            clearTimeout(timeout);
+            cancelled = true; //“if old timer runs later, ignore it”
+            clearTimeout(timeout); // “stop the timer completely”
         };
     }, [count]);
 
@@ -49,7 +57,8 @@ export const AdvancedCounter: React.FC = () => {
     const handleReset = () => {
         setCount(0);
     };
-    // handling step count  
+    // handling step count This function reads the input value, converts it to a number,
+    // and updates step, defaulting to 1 if the input is invalid or empty. 
     const handleStepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = Number(e.target.value);
         setStep(value || 1);
