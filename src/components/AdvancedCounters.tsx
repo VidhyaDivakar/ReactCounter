@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 // Making Advance counter a React.FC which is a (TypeScript Type) for a Functional Componenet
 export const AdvancedCounter: React.FC = () => {
     //lazy initilization of state; checks if a values exisits in localStorage
@@ -24,6 +24,7 @@ export const AdvancedCounter: React.FC = () => {
 
     // Adding Reset Logic
     const [isReset, setIsReset] = useState(false);
+
     const handleReset = () => {
         setIsReset(true);
         setCount(0);
@@ -32,32 +33,8 @@ export const AdvancedCounter: React.FC = () => {
         localStorage.removeItem('count');
         localStorage.removeItem('history');
     };
-    // To track the history //Run this code after render, but only when something changes. prev is callback form, upends at the end of array”
-    useEffect(() => {
-        if (isReset) {
-            setIsReset(false);
-            return;
-        }
-        setHistory(prev => [...prev, count]);
-        console.log("Count History");
-    }, [count]);
-    // useEffect(() => {
-    //     setHistory(prev => {
-    //         if (prev.length === 0 && count === 0) return prev;
-    //         return [...prev, count];
-    //     });
-    // }, [count]);
 
-    // Auto saving the count history
 
-    // useEffect(() => {
-    //     let cancelled = false;
-
-    //     const timeout = setTimeout(() => {
-    //         if (!cancelled) {
-    //             localStorage.setItem('count', count.toString());
-    //         }
-    //     }, 100);
     useEffect(() => {
         setSaveStatus('saving');
 
@@ -83,14 +60,24 @@ export const AdvancedCounter: React.FC = () => {
     // }, [count]);
 
     //Increment and Decrement handlers
+    // const handleIncrement = () => {
+    //     setCount(prev => prev + step);
+    //     console.log("Incrementing")
+    // };
     const handleIncrement = () => {
-        setCount(prev => prev + step);
-        console.log("Incrementing")
+        const newCount = count + step;
+        setCount(newCount);
+        setHistory(prev => [...prev, newCount]);
     };
 
+    // const handleDecrement = () => {
+    //     setCount(prev => prev - step);
+    //     console.log("Decrementing")
+    // };
     const handleDecrement = () => {
-        setCount(prev => prev - step);
-        console.log("Decrementing")
+        const newCount = count - step;
+        setCount(newCount);
+        setHistory(prev => [...prev, newCount]);
     };
     // const handleReset = () => {
     //     setCount(0);
@@ -146,11 +133,15 @@ export const AdvancedCounter: React.FC = () => {
                 {saveStatus === 'saved' && 'Changes Saved'}
             </p>
             <h2>Count History</h2>
-            <p>
-                {history.length > 0
-                    ? history.join(', ')
-                    : 'No history yet'}
-            </p>
+            <div>
+                {history.length > 0 ? (
+                    history.map((item, index) => (
+                        <p key={index}>{item}</p>
+                    ))
+                ) : (
+                    <p>No history yet</p>
+                )}
+            </div>
         </div>
     );
-}
+};
