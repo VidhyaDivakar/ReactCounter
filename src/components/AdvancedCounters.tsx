@@ -14,13 +14,13 @@ export const AdvancedCounter: React.FC = () => {
     // Declaring state variables (react hooks) as the const
     const [step, setStep] = useState<number>(1);
     const [history, setHistory] = useState<number[]>([]);
-
+  console.log("Declaring state variables")
     // To track the history 
     //Run this code after render, but only when something changes. prev is callback form, upends at the end of array”
 
     useEffect(() => {
         setHistory(prev => [...prev, count]);
-
+          console.log("Count History");
     }, [count]);
 
     // Auto saving the count history
@@ -49,10 +49,12 @@ export const AdvancedCounter: React.FC = () => {
     //Increment and Decrement handlers
     const handleIncrement = () => {
         setCount(prev => prev + step);
+          console.log("Incrementing")
     };
 
     const handleDecrement = () => {
         setCount(prev => prev - step);
+         console.log("Decrementing")
     };
     const handleReset = () => {
         setCount(0);
