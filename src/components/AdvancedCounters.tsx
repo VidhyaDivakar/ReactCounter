@@ -13,52 +13,88 @@ export const AdvancedCounter: React.FC = () => {
     });
     // Declaring state variables (react hooks) as the const
     const [step, setStep] = useState<number>(1);
-    const [history, setHistory] = useState<number[]>([]);
-  console.log("Declaring state variables")
-    // To track the history 
-    //Run this code after render, but only when something changes. prev is callback form, upends at the end of array”
+    //const [history, setHistory] = useState<number[]>([]);
 
+    console.log("Declaring state variables")
+    const [history, setHistory] = useState<number[]>(() => {
+        const saved = localStorage.getItem('history');
+        return saved ? JSON.parse(saved) : [];
+    });
+    const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+
+    // Adding Reset Logic
+    const [isReset, setIsReset] = useState(false);
+    const handleReset = () => {
+        setIsReset(true);
+        setCount(0);
+        setHistory([]);
+        setStep(1);
+        localStorage.removeItem('count');
+        localStorage.removeItem('history');
+    };
+    // To track the history //Run this code after render, but only when something changes. prev is callback form, upends at the end of array”
     useEffect(() => {
+        if (isReset) {
+            setIsReset(false);
+            return;
+        }
         setHistory(prev => [...prev, count]);
-          console.log("Count History");
+        console.log("Count History");
     }, [count]);
+    // useEffect(() => {
+    //     setHistory(prev => {
+    //         if (prev.length === 0 && count === 0) return prev;
+    //         return [...prev, count];
+    //     });
+    // }, [count]);
 
     // Auto saving the count history
 
+    // useEffect(() => {
+    //     let cancelled = false;
+
+    //     const timeout = setTimeout(() => {
+    //         if (!cancelled) {
+    //             localStorage.setItem('count', count.toString());
+    //         }
+    //     }, 100);
     useEffect(() => {
-        let cancelled = false;
+        setSaveStatus('saving');
 
         const timeout = setTimeout(() => {
-            if (!cancelled) {
-                localStorage.setItem('count', count.toString());
-            }
-        }, 100);
-// this logic is necessary coz, when the user might clicks the count slow or immeditaly 
-// so giving a buffer or 100ms and working with timer to continue or 
-// If the user clicks again before 100ms completes, the cleanup runs 
-// first and cancels the previous timer so the old setTimeout never 
-// saves outdated data. If 100ms finishes without another click, 
-// the timer executes and saves the current count to localStorage.
-// SAVE 1  (canceled), SAVE 2 (executed)
-        return () => {
-            cancelled = true; //“if old timer runs later, ignore it”
-            clearTimeout(timeout); // “stop the timer completely”
-        };
-    }, [count]);
+            localStorage.setItem('count', count.toString());
+            localStorage.setItem('history', JSON.stringify(history));
+
+            setSaveStatus('saved');
+        }, 300);
+
+        return () => clearTimeout(timeout); //“stop the timer completely”
+    }, [count, history]);
+    // this logic is necessary coz, when the user might clicks the count slow or immeditaly 
+    // so giving a buffer or 300ms and working with timer to continue or 
+    // If the user clicks again before 300ms completes, the cleanup runs 
+    // first and cancels the previous timer so the old setTimeout never 
+    // saves outdated data. If 100ms finishes without another click, 
+    // the timer executes and saves the current count to localStorage.
+    //     return () => {
+    //         cancelled = true; //“if old timer runs later, ignore it”
+    //         clearTimeout(timeout); // “stop the timer completely”
+    //     };
+    // }, [count]);
 
     //Increment and Decrement handlers
     const handleIncrement = () => {
         setCount(prev => prev + step);
-          console.log("Incrementing")
+        console.log("Incrementing")
     };
 
     const handleDecrement = () => {
         setCount(prev => prev - step);
-         console.log("Decrementing")
+        console.log("Decrementing")
     };
-    const handleReset = () => {
-        setCount(0);
-    };
+    // const handleReset = () => {
+    //     setCount(0);
+    // };
     // handling step count This function reads the input value, converts it to a number,
     // and updates step, defaulting to 1 if the input is invalid or empty. 
     const handleStepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,6 +111,7 @@ export const AdvancedCounter: React.FC = () => {
             handleDecrement();
         }
     };
+
     // adding UI elements
     return (
         <div
@@ -104,6 +141,10 @@ export const AdvancedCounter: React.FC = () => {
                 <button onClick={handleIncrement}>Increment</button>
                 <button onClick={handleReset}>Reset</button>
             </div>
+            <p>
+                {saveStatus === 'saving' && 'Saving to Local Storage...'}
+                {saveStatus === 'saved' && 'Changes Saved'}
+            </p>
             <h2>Count History</h2>
             <p>
                 {history.length > 0
@@ -112,4 +153,4 @@ export const AdvancedCounter: React.FC = () => {
             </p>
         </div>
     );
-};
+}
